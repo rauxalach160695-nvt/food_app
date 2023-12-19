@@ -7,5 +7,6 @@ const auth = require("../middleware/auth.js");
 router.post("/viewOrder",auth, OrderController.viewOrder);
 router.post("/addOrder",auth, OrderController.addOrder);
 router.delete("/deleteOrder",auth, OrderController.deleteOrder);
+router.post("/viewdata",auth, OrderController.viewdata);
 
 module.exports = router;

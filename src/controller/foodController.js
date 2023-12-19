@@ -2,29 +2,25 @@ const asyncHandler = require("express-async-handler");
 const User = require("../model/User");
 const jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
-const { ReturnDocument } = require("mongodb");
+const { ReturnDocument, ObjectId } = require("mongodb");
 require("dotenv").config();
 const Food = require("../model/Food");
 const FoodState = require("../model/FoodState");
+const FoodRate = require("../model/FoodRate");
 
+exports.index = asyncHandler(async (req, res, next) => {
+  const { foodId } = req.body;
 
+  //Get user input
+  try {
+    const selectedFood = await Food.findOne({ _id: foodId });
+    console.log(selectedFood.foodName);
 
-
-exports.index= asyncHandler(async (req, res, next) => {
-  const{
-    foodId
-  } = req.body;
-
-    //Get user input
-    try {
-      const selectedFood = await Food.findOne({_id: foodId });
-      console.log(selectedFood.foodName);
-  
-      return res.status(200).json({ meesage: selectedFood });
-    } catch (error) {
-      return res.status(500).json({ meesage: "Them mon an khong thanh cong" });
-    }
-  });
+    return res.status(200).json({ meesage: selectedFood });
+  } catch (error) {
+    return res.status(500).json({ meesage: "Them mon an khong thanh cong" });
+  }
+});
 
 exports.addFood = asyncHandler(async (req, res, next) => {
   //Get user input
@@ -40,6 +36,7 @@ exports.addFood = asyncHandler(async (req, res, next) => {
     } = req.body;
     console.log("hello");
     //Create new Food object
+    console.log(foodName);
     var newFood = new Food({ foodName, price, description, image, foodType });
 
     //Add Food to database
@@ -51,13 +48,13 @@ exports.addFood = asyncHandler(async (req, res, next) => {
       quantity,
       foodId: newFood._id,
     });
-
     //Add new User Detail to database
     await newFoodState.save();
 
     return res.status(200).json({ meesage: "Them mon an thanh cong" });
   } catch (error) {
-    return res.status(500).json({ meesage: "Them mon an khong thanh cong" });
+    console.log(error);
+    return res.status(500).json({ meesage: error });
   }
 });
 
@@ -96,30 +93,51 @@ exports.updateFoodState = asyncHandler(async (req, res, next) => {
   }
 });
 
-
 exports.deleteFood = asyncHandler(async (req, res, next) => {
+  //Get user input
+  try {
+    const { foodName } = req.body;
+
+    // Find Food object follow food name
+    const selectedFood = await Food.findOne({ foodName: foodName });
+
+    //Find and delete FoodSate object follow foodid
+    await FoodState.findOneAndDelete({ foodId: selectedFood._id });
+
+    // Delete ratings of food
+    await FoodRate.deleteMany({ foodId: selectedFood._id });
+
+    await Food.findOneAndDelete({ _id: selectedFood._id });
+    return res.status(200).json({ meesage: "Xoa mon an thanh cong" });
+  } catch (error) {
+    return res.status(500).json({ meesage: error });
+  }
+});
+
+exports.viewFood = asyncHandler(async (req, res, next) => {
+  try {
     //Get user input
-    try {
-      const { foodName} = req.body;
-  
-      // Find Food object follow food name
-      const selectedFood = await Food.findOne({ foodName: foodName });
-  
-      //Find and delete FoodSate object follow foodid
-      await FoodState.findOneAndDelete(
-        { foodId: selectedFood._id },
+    const { foodId } = req.body;
+    console.log(foodId)
+    // Find Food object follow id
+    const selectedFood = await Food.findById(foodId);
 
-      );
-      await Food.findOneAndDelete(
-        { _id: selectedFood._id },
-    
-      );  
-      return res
-        .status(200)
-        .json({ meesage: "Xoa mon an thanh cong" });
-    } catch (error) {
-      return res.status(500).json({ meesage: error });
-    }
-  });
+    return res.status(200).json( selectedFood );
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+});
 
+exports.viewFoodState = asyncHandler(async (req, res, next) => {
+  try {
+    //Get user input
+    const { foodId } = req.body;
+    console.log(foodId)
+    // Find Food object follow id
+    const selectedFoodState = await FoodState.findOne({foodId: foodId});
 
+    return res.status(200).json( selectedFoodState );
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+});

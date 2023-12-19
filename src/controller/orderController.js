@@ -22,7 +22,13 @@ exports.viewOrder = asyncHandler(async (req, res, next) => {
 
 exports.addOrder = asyncHandler(async (req, res, next) => {
   try {
-    const { cart, cost, image, orderState } = req.body;
+    const { listCart, cost, image, orderState } = req.body;
+
+    console.log("run here!");
+    // console.log(listCart.cart)   
+    console.log(listCart.cart[0])
+    console.log(cost)
+    console.log(image)
 
     var newOrder = new Order({
       cost,
@@ -31,7 +37,7 @@ exports.addOrder = asyncHandler(async (req, res, next) => {
       userId: req.user.user_id,
     });
     await newOrder.save();
-    cart.forEach(async (element) => {
+    listCart.cart.forEach(async (element) => {
       var newOrderDetail = new OrderDetail({
         orderId: newOrder._id,
         foodId: element.id,
@@ -55,8 +61,38 @@ exports.deleteOrder = asyncHandler(async (req, res, next) => {
 
     //Delete order
     await Order.findOneAndDelete({ _id: orderId });
-    
-    return res.status(200).json({ meesage: "Xoa don hang khoi lich su thanh cong!"});
+
+    return res
+      .status(200)
+      .json({ meesage: "Xoa don hang khoi lich su thanh cong!" });
+  } catch (error) {
+    return res.status(500).json({ meesage: "Xoa don hang that bai!" });
+  }
+});
+
+exports.viewdata = asyncHandler(async (req, res, next) => {
+  try {
+    const { listCart, cost, orderState, image } = req.body;
+    console.log("run here!");
+    // console.log(listCart.cart)   
+    console.log(listCart.cart[0])
+    console.log(cost)
+    console.log(image)
+
+    //Delete all order detail of order
+    // var jsonVar = JSON.parse(listCart);
+    // console.log(jsonVar);
+    // console.log(typeof jsonVar);
+
+    //   var keys = [];
+    //  for(var key in listCart){
+    //     keys.push(key);
+    //  }
+    //  console.log(keys);
+
+    return res
+      .status(200)
+      .json({ meesage: "Xoa don hang khoi lich su thanh cong!" });
   } catch (error) {
     return res.status(500).json({ meesage: "Xoa don hang that bai!" });
   }

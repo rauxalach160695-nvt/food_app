@@ -11,10 +11,7 @@ router.post("/addFood", FoodController.addFood);
 router.put("/updateFood", FoodController.updateFood);
 router.put("/updateFoodState", FoodController.updateFoodState);
 router.delete("/deleteFood", FoodController.deleteFood);
-router.post("/search", SeaarchController.searchByName);
-// router.post("/secret",auth, UserController.secret);
-// router.put("/editPass",auth, UserController.editPass);
-// router.put("/editUserName",auth, UserController.editUserName);
-// router.put("/editPhone",auth, UserController.editPhone);
-// router.put("/editEmail",auth, UserController.editEmail);
-module.exports = router;
+router.post("/viewFood", FoodController.viewFood);
+router.post("/viewFoodState", FoodController.viewFoodState);
+
+module.exports = router;    

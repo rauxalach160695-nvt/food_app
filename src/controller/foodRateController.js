@@ -2,10 +2,11 @@ const asyncHandler = require("express-async-handler");
 const User = require("../model/User");
 const jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
-const { ReturnDocument } = require("mongodb");
+const { ReturnDocument, ObjectId } = require("mongodb");
 require("dotenv").config();
 const Food = require("../model/Food");
 const FoodRate = require("../model/FoodRate");
+const mongoose = require('mongoose');
 
 exports.addFoodRate = asyncHandler(async (req, res, next) => {
   //Get user input
@@ -35,11 +36,10 @@ exports.addFoodRate = asyncHandler(async (req, res, next) => {
         listRate.forEach((x) => {
           sumRate += x.rate;
         });
-        
-       
+
         // average rate
         var foodRating = sumRate / listRate.length;
-        foodRating.toFixed(1);
+        foodRating = Math.round(foodRating*10)/10;
 
         // update new rating for food
         const findFood = await Food.findOneAndUpdate(
@@ -64,16 +64,28 @@ exports.viewFoodRate = asyncHandler(async (req, res, next) => {
   //Get user input
   try {
     const { foodId } = req.body;
-
-    //Find all rating of food
-    const listRate = await FoodRate.find({ foodId: foodId });
+    idnew =  new ObjectId(foodId)
+    listRate = await FoodRate.aggregate([
+      { $match: { foodId: idnew} },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userInfo",
+          pipeline: [
+            { "$project": { "userName": 1, "avatarNum": 1 ,"_id":0}}
+          ],
+        },
+      },
+    ]);
 
     console.log(listRate);
-    return res.status(200).json({ meesage: listRate });
+    return res.status(200).json( listRate );
   } catch (error) {
     return res
       .status(500)
-      .json({ meesage: "Them danh gia mon an khong thanh cong" });
+      .json({ meesage:error });
   }
 });
 

@@ -34,19 +34,28 @@ exports.signUp = asyncHandler(async (req, res, next) => {
     //Encrypt user password
     encryptedPassword = await bcrypt.hashSync(password, 10);
     console.log(encryptedPassword);
+    //Create random avatar number
+    avatarNum = Math.floor(Math.random() * 10)
+    console.log(avatarNum)
     //Create new User object
     var newUser = new User({
       userName,
       password: encryptedPassword,
       phoneNumber,
+      avatarNum: avatarNum
     });
 
     //Add User to database
     await newUser.save();
 
-    return res.status(200).json({ meesage: "Add user thanh cong" });
+    const token = jwt.sign(
+      { iss: "ThinhNguyen", user_id: newUser._id, iat: new Date().getTime() },
+      process.env.SECRET_TOKEN
+    );
+    res.setHeader("Authorization", token);
+    return res.status(200).json({ token: token})
   } catch (error) {
-    return res.status(500).json({ meesage: "Them user that bai ><" });
+    return res.status(500).json({ meesage: "Add user fail !" });
   }
 });
 
@@ -78,6 +87,17 @@ exports.signIn = asyncHandler(async (req, res, next) => {
   }
 });
 
+exports.getUserName = asyncHandler(async (req, res, next) => {
+  try {
+    userSelected = await User.findById(req.user.user_id);
+    nameUserSelected = userSelected.userName;
+    return res
+      .status(200)
+      .json({ userName:nameUserSelected});
+  } catch (error) {
+    return res.status(500).json({ meesage: "Get user name fail!" });
+  }
+});
 
 exports.editPass = asyncHandler(async (req, res, next) => {
   try {
